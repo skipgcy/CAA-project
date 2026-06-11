@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Bmazon - Cart</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="apple-touch-icon" href="assets/img/apple-icon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.ico">
+
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/templatemo.css">
+    <link rel="stylesheet" href="assets/css/custom.css">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;700;900&display=swap">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+</head>
+
+<body>
+
+<!-- Header（完全复用你的导航栏） -->
+<nav class="navbar navbar-expand-lg navbar-light shadow">
+    <div class="container d-flex justify-content-between align-items-center">
+
+        <a class="navbar-brand text-success logo h1 align-self-center" href="index.html">
+            Bmazon
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#templatemo_main_nav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse flex-fill d-lg-flex justify-content-lg-between"
+             id="templatemo_main_nav">
+
+            <ul class="nav navbar-nav d-flex justify-content-between mx-lg-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="shop.html">Products</a></li>
+                <li class="nav-item"><a class="nav-link" href="Orders.html">Orders</a></li>
+                <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+            </ul>
+
+            <div class="navbar align-self-center d-flex">
+                <a class="nav-icon position-relative text-decoration-none" href="cart.html">
+                    <i class="fa fa-fw fa-cart-arrow-down text-dark"></i>
+                    <span class="badge bg-success text-white">2</span>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<!-- Cart Section -->
+<section class="container py-5">
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="h2 pb-3">Shopping Cart</h1>
+        </div>
+    </div>
+
+    <!-- Cart Table -->
+    <div class="row">
+        <div class="col-md-8">
+
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Remove</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr>
+                    <td>SNK Mechanical Keyboard</td>
+                    <td>$129.99</td>
+                    <td>
+                        <input type="number" value="1" min="1" class="form-control" style="width:80px;">
+                    </td>
+                    <td>$129.99</td>
+                    <td><button class="btn btn-danger btn-sm">X</button></td>
+                </tr>
+
+                <tr>
+                    <td>Apple Watch</td>
+                    <td>$480.00</td>
+                    <td>
+                        <input type="number" value="1" min="1" class="form-control" style="width:80px;">
+                    </td>
+                    <td>$480.00</td>
+                    <td><button class="btn btn-danger btn-sm">X</button></td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <!-- Summary -->
+        <div class="col-md-4">
+
+            <div class="card p-3">
+                <h4>Order Summary</h4>
+
+                <hr>
+
+                <p>Subtotal: <strong>$609.99</strong></p>
+                <p>Tax: <strong>$79.30</strong></p>
+                <p>Shipping: <strong>$10.00</strong></p>
+
+                <hr>
+
+                <h5>Total: <strong>$699.29</strong></h5>
+
+                <a href="checkout.html" class="btn btn-success w-100 mt-3">
+                    Proceed to Checkout
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</section>
+
+<!-- Footer（复用你的 footer） -->
+<footer class="bg-dark text-light pt-5">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-md-4">
+                <h2 class="h5 text-success">CloudShop</h2>
+                <p>Toronto, Ontario, Canada</p>
+            </div>
+
+            <div class="col-md-4">
+                <h5>Products</h5>
+                <ul class="list-unstyled">
+                    <li>Smartphones</li>
+                    <li>Laptops</li>
+                    <li>Accessories</li>
+                </ul>
+            </div>
+
+            <div class="col-md-4">
+                <h5>Contact</h5>
+                <p>cgao37@myseneca.ca</p>
+            </div>
+
+        </div>
+    </div>
+</footer>
+
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

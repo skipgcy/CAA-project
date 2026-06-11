@@ -1,0 +1,86 @@
+/*
+Custom Css - CloudShop AWS Project
+*/
+
+/* =========================
+   1. 全站背景（改白）
+========================= */
+body {
+    background-color: #ffffff;
+}
+
+/* =========================
+   2. 保留层次的浅灰区块
+========================= */
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+/* =========================
+   3. Banner Hero 背景统一
+========================= */
+#template-mo-zay-hero-carousel {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #eee;
+}
+
+#template-mo-zay-hero-carousel .carousel-item,
+#template-mo-zay-hero-carousel .container,
+#template-mo-zay-hero-carousel .row {
+    background-color: #ffffff !important;
+}
+
+/* =========================
+   4. 商品卡片（重点优化）
+   让UI更像电商网站
+========================= */
+.card {
+    border: 1px solid #eee;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================
+   5. 商品图片统一风格
+========================= */
+.card img {
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* =========================
+   6. 导航栏优化（轻微增强）
+========================= */
+.navbar {
+    background-color: #ffffff;
+}
+
+/* =========================
+   7. 按钮统一风格（绿色主题）
+========================= */
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* =========================
+   8. 链接统一风格
+========================= */
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}

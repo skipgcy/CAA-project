@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Bmazon - Contact Us</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="apple-touch-icon" href="assets/img/apple-icon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon.ico">
+
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/templatemo.css">
+    <link rel="stylesheet" href="assets/css/custom.css">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;700;900&display=swap">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav class="navbar navbar-expand-lg navbar-light shadow">
+    <div class="container d-flex justify-content-between align-items-center">
+
+        <a class="navbar-brand text-success logo h1" href="index.html">
+            Bmazon
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse flex-fill d-lg-flex justify-content-lg-between" id="mainNav">
+
+            <ul class="nav navbar-nav d-flex justify-content-between mx-lg-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="shop.html">Products</a></li>
+                <li class="nav-item"><a class="nav-link" href="orders.html">Orders</a></li>
+                <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+            </ul>
+
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<div class="container-fluid bg-light py-5">
+    <div class="col-md-6 m-auto text-center">
+        <h1 class="h1">Contact Us</h1>
+        <p>
+            Have questions about your order, products, or our cloud platform?
+            We’re here to help.
+        </p>
+    </div>
+</div>
+
+<!-- MAP -->
+<div id="mapid" style="width:100%; height:320px;"></div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    // Toronto location (more realistic for your Seneca/AWS project)
+    var map = L.map('mapid').setView([43.7956, -79.3490], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([43.7956, -79.3490]).addTo(map)
+        .bindPopup("<b>Bmazon Cloud HQ</b><br>Toronto, ON").openPopup();
+
+    map.scrollWheelZoom.disable();
+</script>
+
+<!-- CONTACT FORM -->
+<section class="container py-5">
+
+    <div class="row">
+        <div class="col-lg-8 m-auto">
+
+            <div class="text-center mb-4">
+                <h2>Get in Touch</h2>
+                <p class="text-muted">We usually respond within 24 hours.</p>
+            </div>
+
+            <form class="p-4 border rounded shadow-sm bg-white">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Name</label>
+                        <input type="text" class="form-control" placeholder="Your name">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Email</label>
+                        <input type="email" class="form-control" placeholder="Your email">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label>Subject</label>
+                    <input type="text" class="form-control" placeholder="Subject">
+                </div>
+
+                <div class="mb-3">
+                    <label>Message</label>
+                    <textarea class="form-control" rows="6" placeholder="Write your message..."></textarea>
+                </div>
+
+                <button class="btn btn-success w-100">
+                    Send Message
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+</section>
+
+<!-- FOOTER -->
+<footer class="bg-dark text-light pt-5">
+
+    <div class="container">
+        <div class="row">
+
+            <div class="col-md-4">
+                <h4 class="text-success">Bmazon</h4>
+                <p>Your one-stop shop for all your tech needs!</p>
+                <p>1750 Finch Ave E, North York, ON M2J 2X5, Canada</p>
+            </div>
+
+                <div class="col-md-4 pt-5">
+                    <h2 class="h2 text-light border-bottom pb-3 border-light">Further Info</h2>
+                    <ul class="list-unstyled text-light footer-link-list">
+                        <li><a class="text-decoration-none" href="index.html">Home</a></li>
+                        <li><a class="text-decoration-none" href="about.html">About Us</a></li>
+                        <li><a class="text-decoration-none" href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+
+            <div class="col-md-4">
+                <h5>Contact Info</h5>
+                <p>Email: cgao37@myseneca.ca</p>
+                <p>Phone: 010-020-0340</p>
+            </div>
+
+        </div>
+    </div>
+
+</footer>
+
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
