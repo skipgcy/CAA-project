@@ -19,11 +19,7 @@
     <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <!--
     
-TemplateMo 559 Bmazon Shop
 
-https://templatemo.com/tm-559-Bmazon-shop
-
--->
 </head>
 
 <body>
@@ -262,7 +258,13 @@ https://templatemo.com/tm-559-Bmazon-shop
         </div>
     </section>
     <!-- End Categories of The Month -->
+<div class="container text-center py-4">
+    <button class="btn btn-success" onclick="callAPI()">
+        Call API
+    </button>
 
+    <pre id="result" style="margin-top:20px;"></pre>
+</div>
 
     <!-- Start Featured Product -->
     <section class="bg-light">
@@ -462,6 +464,17 @@ https://templatemo.com/tm-559-Bmazon-shop
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/templatemo.js"></script>
     <script src="assets/js/custom.js"></script>
+    <script>
+const API_URL = "https://eath06x9v8.execute-api.us-east-1.amazonaws.com/";
+
+async function callAPI() {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+
+    document.getElementById("result").innerText =
+        JSON.stringify(data, null, 2);
+}
+    </script>
     <script>
         function logout() {
             alert("Logged out successfully!");
