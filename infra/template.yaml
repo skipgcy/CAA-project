@@ -1,0 +1,250 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Bmazon CAA900 secure serverless backend
+
+Parameters:
+  FrontendOrigin:
+    Type: String
+    Description: Exact HTTPS frontend origin, without a trailing slash
+  UserPoolId:
+    Type: String
+    Default: us-east-1_CXzowESmL
+  UserPoolClientId:
+    Type: String
+    Default: 1p0e84nqerhr6lktjd75j95rn0
+  EcommerceTableName:
+    Type: String
+    Default: Ecommerce
+  IdempotencyTableName:
+    Type: String
+    Default: OrderIdempotency
+  OrderTopicArn:
+    Type: String
+  StripeSecretId:
+    Type: String
+  FromEmail:
+    Type: String
+    Description: SES-verified sender address
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    CodeUri: ../backend/
+    MemorySize: 256
+    Timeout: 10
+    Architectures: [arm64]
+    Tracing: Active
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref EcommerceTableName
+        IDEMPOTENCY_TABLE: !Ref IdempotencyTableName
+        ORDER_TOPIC_ARN: !Ref OrderTopicArn
+  HttpApi:
+    CorsConfiguration:
+      AllowOrigins: [!Ref FrontendOrigin]
+      AllowHeaders: [authorization, content-type, idempotency-key, stripe-signature]
+      AllowMethods: [GET, POST, PATCH, OPTIONS]
+      MaxAge: 600
+
+Resources:
+  BmazonApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiAccessLogs.Arn
+        Format: '{"requestId":"$context.requestId","routeKey":"$context.routeKey","status":"$context.status","responseLength":"$context.responseLength","integrationError":"$context.integrationErrorMessage"}'
+      Auth:
+        DefaultAuthorizer: CognitoJwtAuthorizer
+        Authorizers:
+          CognitoJwtAuthorizer:
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPoolId}
+              audience: [!Ref UserPoolClientId]
+            IdentitySource: $request.header.Authorization
+
+  ApiAccessLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 14
+
+  ProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/product/index.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref EcommerceTableName }
+      Events:
+        ListProducts:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /products
+            Method: GET
+            Auth: { Authorizer: NONE }
+
+  GetProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/get-product/index.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref EcommerceTableName }
+      Events:
+        GetProduct:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /products/{id}
+            Method: GET
+            Auth: { Authorizer: NONE }
+
+  OrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/order/index.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref EcommerceTableName }
+        - DynamoDBWritePolicy: { TableName: !Ref EcommerceTableName }
+        - DynamoDBReadPolicy: { TableName: !Ref IdempotencyTableName }
+        - DynamoDBWritePolicy: { TableName: !Ref IdempotencyTableName }
+        - SNSPublishMessagePolicy: { TopicName: !Select [5, !Split [':', !Ref OrderTopicArn]] }
+      Events:
+        CreateOrder:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /orders
+            Method: POST
+        ListOrders:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /orders
+            Method: GET
+        GetOrder:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /orders/{id}
+            Method: GET
+
+  AdminOrdersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/admin-orders/index.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref EcommerceTableName }
+        - DynamoDBWritePolicy: { TableName: !Ref EcommerceTableName }
+        - SNSPublishMessagePolicy: { TopicName: !Select [5, !Split [':', !Ref OrderTopicArn]] }
+      Events:
+        ListAdminOrders:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /admin/orders
+            Method: GET
+        UpdateAdminOrder:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /admin/orders/{id}
+            Method: PATCH
+
+  PaymentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/payment/index.handler
+      Environment:
+        Variables:
+          STRIPE_SECRET_ID: !Ref StripeSecretId
+          FRONTEND_URL: !Ref FrontendOrigin
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref EcommerceTableName }
+        - AWSSecretsManagerGetSecretValuePolicy: { SecretArn: !Ref StripeSecretId }
+      Events:
+        CreateCheckoutSession:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /payment
+            Method: POST
+
+  StripeWebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/stripe-webhook/index.handler
+      Environment:
+        Variables:
+          STRIPE_SECRET_ID: !Ref StripeSecretId
+      Policies:
+        - DynamoDBWritePolicy: { TableName: !Ref EcommerceTableName }
+        - AWSSecretsManagerGetSecretValuePolicy: { SecretArn: !Ref StripeSecretId }
+        - SNSPublishMessagePolicy: { TopicName: !Select [5, !Split [':', !Ref OrderTopicArn]] }
+      Events:
+        StripeWebhook:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /stripe/webhook
+            Method: POST
+            Auth: { Authorizer: NONE }
+
+  NotificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/notification/index.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref EcommerceTableName }
+        - SNSPublishMessagePolicy: { TopicName: !Select [5, !Split [':', !Ref OrderTopicArn]] }
+      Events:
+        ResendNotification:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /orders/{id}/notifications
+            Method: POST
+
+  OrderNotificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/order-notification/index.handler
+      Environment:
+        Variables:
+          FROM_EMAIL: !Ref FromEmail
+          FRONTEND_URL: !Ref FrontendOrigin
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref EcommerceTableName }
+        - Statement:
+            - Effect: Allow
+              Action: ses:SendEmail
+              Resource: '*'
+              Condition:
+                StringEquals:
+                  ses:FromAddress: !Ref FromEmail
+      Events:
+        OrderTopic:
+          Type: SNS
+          Properties:
+            Topic: !Ref OrderTopicArn
+
+  OrderErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Order Lambda errors
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref OrderFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${BmazonApi}.execute-api.${AWS::Region}.amazonaws.com/prod
+  StripeWebhookUrl:
+    Value: !Sub https://${BmazonApi}.execute-api.${AWS::Region}.amazonaws.com/prod/stripe/webhook

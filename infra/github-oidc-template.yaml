@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: GitHub Actions OIDC and scoped deployment roles for Bmazon
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+      ThumbprintList: [6938fd4d98bab03faadb97b34396831e3780aea1]
+      Tags:
+        - Key: Project
+          Value: CAA900-Bmazon
+
+  CloudFormationExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: bmazon-cloudformation-execution
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: cloudformation.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: BmazonCloudFormationResources
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:*
+                  - apigateway:*
+                  - logs:*
+                  - cloudwatch:*
+                  - sns:*
+                  - cloudfront:*
+                  - acm:*
+                  - route53:*
+                  - s3:GetBucketPolicy
+                  - s3:PutBucketPolicy
+                  - s3:DeleteBucketPolicy
+                Resource: '*'
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-j1utynfu3bw4/*
+              - Effect: Allow
+                Action: [iam:CreateRole, iam:DeleteRole, iam:GetRole, iam:PassRole, iam:TagRole, iam:UntagRole, iam:PutRolePolicy, iam:DeleteRolePolicy, iam:GetRolePolicy, iam:AttachRolePolicy, iam:DetachRolePolicy, iam:UpdateAssumeRolePolicy]
+                Resource: arn:aws:iam::563960656220:role/bmazon-backend-*
+
+  GitHubDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: bmazon-github-deploy
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Federated: !Ref GitHubOidcProvider }
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - repo:skipgcy/CAA-project:ref:refs/heads/main
+                  - repo:skipgcy/CAA-project:environment:production
+      Policies:
+        - PolicyName: BmazonGitHubDeployment
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [cloudformation:CreateChangeSet, cloudformation:DescribeChangeSet, cloudformation:ExecuteChangeSet, cloudformation:DeleteChangeSet, cloudformation:DescribeStacks, cloudformation:DescribeStackEvents, cloudformation:DescribeStackResources, cloudformation:ListStackResources, cloudformation:GetTemplate, cloudformation:GetTemplateSummary]
+                Resource:
+                  - arn:aws:cloudformation:us-east-1:563960656220:stack/bmazon-backend/*
+                  - arn:aws:cloudformation:us-east-1:563960656220:stack/bmazon-domain/*
+                  - arn:aws:cloudformation:us-east-1:aws:transform/Serverless-2016-10-31
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource: !GetAtt CloudFormationExecutionRole.Arn
+                Condition: { StringEquals: { iam:PassedToService: cloudformation.amazonaws.com } }
+              - Effect: Allow
+                Action: [s3:ListBucket, s3:GetBucketLocation]
+                Resource:
+                  - arn:aws:s3:::chenyu-caa900-project
+                  - arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-j1utynfu3bw4
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:DeleteObject]
+                Resource:
+                  - arn:aws:s3:::chenyu-caa900-project/*
+                  - arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-j1utynfu3bw4/*
+              - Effect: Allow
+                Action: cloudfront:CreateInvalidation
+                Resource: arn:aws:cloudfront::563960656220:distribution/E2AOVKQS161DLH
+
+Outputs:
+  GitHubDeployRoleArn:
+    Value: !GetAtt GitHubDeployRole.Arn
+  CloudFormationExecutionRoleArn:
+    Value: !GetAtt CloudFormationExecutionRole.Arn

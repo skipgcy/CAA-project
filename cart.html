@@ -77,27 +77,7 @@
                 </tr>
                 </thead>
 
-                <tbody>
-                <tr>
-                    <td>SNK Mechanical Keyboard</td>
-                    <td>$129.99</td>
-                    <td>
-                        <input type="number" value="1" min="1" class="form-control" style="width:80px;">
-                    </td>
-                    <td>$129.99</td>
-                    <td><button class="btn btn-danger btn-sm">X</button></td>
-                </tr>
-
-                <tr>
-                    <td>Apple Watch</td>
-                    <td>$480.00</td>
-                    <td>
-                        <input type="number" value="1" min="1" class="form-control" style="width:80px;">
-                    </td>
-                    <td>$480.00</td>
-                    <td><button class="btn btn-danger btn-sm">X</button></td>
-                </tr>
-                </tbody>
+                <tbody id="cartItems"></tbody>
             </table>
 
         </div>
@@ -110,15 +90,15 @@
 
                 <hr>
 
-                <p>Subtotal: <strong>$609.99</strong></p>
-                <p>Tax: <strong>$79.30</strong></p>
-                <p>Shipping: <strong>$10.00</strong></p>
+                <p>Subtotal: <strong id="cartSubtotal">$0.00</strong></p>
+                <p>Tax (13% HST): <strong id="cartTax">$0.00</strong></p>
+                <p>Shipping: <strong id="cartShipping">$0.00</strong></p>
 
                 <hr>
 
-                <h5>Total: <strong>$699.29</strong></h5>
+                <h5>Total: <strong id="cartTotal">$0.00</strong></h5>
 
-                <a href="checkout.html" class="btn btn-success w-100 mt-3">
+                <a href="checkout.html" id="checkoutButton" class="btn btn-success w-100 mt-3">
                     Proceed to Checkout
                 </a>
             </div>
@@ -157,5 +137,62 @@
 </footer>
 
 <script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/store.js"></script>
+<script>
+    const money = new Intl.NumberFormat("en-CA", {
+        style: "currency",
+        currency: "CAD"
+    });
+
+    function renderCart() {
+        const cart = BmazonCart.read();
+        const body = document.getElementById("cartItems");
+
+        if (cart.length === 0) {
+            body.innerHTML = '<tr><td colspan="5" class="text-center py-5">Your cart is empty. <a href="shop.html">Continue shopping</a>.</td></tr>';
+        } else {
+            body.innerHTML = cart.map((item) => `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="${item.imageUrl}" alt="" width="64" height="64" class="rounded" style="object-fit: cover">
+                            <span>${item.name}</span>
+                        </div>
+                    </td>
+                    <td>${money.format(item.price)}</td>
+                    <td>
+                        <input type="number" value="${item.quantity}" min="1"
+                               class="form-control" style="width:80px"
+                               aria-label="Quantity for ${item.name}"
+                               onchange="changeQuantity('${item.productId}', this.value)">
+                    </td>
+                    <td>${money.format(item.price * item.quantity)}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="removeItem('${item.productId}')" aria-label="Remove ${item.name}">X</button></td>
+                </tr>`).join("");
+        }
+
+        const subtotal = BmazonCart.subtotal(cart);
+        const tax = subtotal * 0.13;
+        const shipping = subtotal > 0 && subtotal < 100 ? 10 : 0;
+        document.getElementById("cartSubtotal").textContent = money.format(subtotal);
+        document.getElementById("cartTax").textContent = money.format(tax);
+        document.getElementById("cartShipping").textContent = money.format(shipping);
+        document.getElementById("cartTotal").textContent = money.format(subtotal + tax + shipping);
+        document.getElementById("checkoutButton").classList.toggle("disabled", cart.length === 0);
+        document.getElementById("checkoutButton").setAttribute("aria-disabled", String(cart.length === 0));
+    }
+
+    function changeQuantity(productId, quantity) {
+        BmazonCart.update(productId, quantity);
+        renderCart();
+    }
+
+    function removeItem(productId) {
+        BmazonCart.remove(productId);
+        renderCart();
+    }
+
+    document.addEventListener("DOMContentLoaded", renderCart);
+</script>
 </body>
 </html>

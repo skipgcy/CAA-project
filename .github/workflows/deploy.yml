@@ -1,0 +1,62 @@
+name: Deploy production
+
+env:
+  SAM_CLI_TELEMETRY: 0
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: aws-actions/setup-sam@v2
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::563960656220:role/bmazon-github-deploy
+          aws-region: us-east-1
+      - name: Test and build
+        run: |
+          npm test
+          sam build --template-file infra/template.yaml --parallel
+      - name: Deploy serverless backend
+        run: >-
+          sam deploy --template-file .aws-sam/build/template.yaml
+          --stack-name bmazon-backend --s3-bucket aws-sam-cli-managed-default-samclisourcebucket-j1utynfu3bw4
+          --capabilities CAPABILITY_IAM --role-arn arn:aws:iam::563960656220:role/bmazon-cloudformation-execution
+          --region us-east-1 --no-confirm-changeset --no-fail-on-empty-changeset
+          --parameter-overrides FrontendOrigin=https://ezei.shop UserPoolId=us-east-1_CXzowESmL
+          UserPoolClientId=1p0e84nqerhr6lktjd75j95rn0 EcommerceTableName=Ecommerce
+          IdempotencyTableName=OrderIdempotency OrderTopicArn=arn:aws:sns:us-east-1:563960656220:order-notification
+          StripeSecretId=arn:aws:secretsmanager:us-east-1:563960656220:secret:bmazon/stripe-VUvhq2
+          FromEmail=chenyugao.ca@gmail.com
+      - name: Deploy domain infrastructure
+        run: >-
+          aws cloudformation deploy --template-file infra/domain-template.yaml --stack-name bmazon-domain
+          --role-arn arn:aws:iam::563960656220:role/bmazon-cloudformation-execution --region us-east-1
+          --no-fail-on-empty-changeset --parameter-overrides HostedZoneId=Z0624703200R6FS79IM3H
+          WebsiteCertificateArn=arn:aws:acm:us-east-1:563960656220:certificate/ed0fdf07-cedc-4dcc-b1bb-ac6d57839130
+          WebsiteBucketName=chenyu-caa900-project HttpApiId=6jzv9z27q9 HttpApiStage=prod
+      - name: Publish frontend
+        run: |
+          aws s3 sync . s3://chenyu-caa900-project/ \
+            --exclude '.git/*' --exclude '.github/*' --exclude '.aws-sam/*' \
+            --exclude 'backend/*' --exclude 'infra/*' --exclude 'docs/*' --exclude 'tests/*' \
+            --exclude 'node_modules/*' --exclude 'package*.json' --exclude 'README.md' \
+            --exclude '.gitignore' --exclude 'seed-lambda.js'
+          aws cloudfront create-invalidation --distribution-id E2AOVKQS161DLH --paths '/*'

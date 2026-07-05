@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Bmazon - Order Confirmation</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/templatemo.css">
+</head>
+<body>
+<main class="container py-5 text-center">
+    <div class="card shadow-sm mx-auto" style="max-width: 620px">
+        <div class="card-body p-5">
+            <div class="display-4 text-success mb-3" aria-hidden="true">&#10003;</div>
+            <h1 class="h2">Order received</h1>
+            <p class="lead">Thank you. Your order has been submitted successfully.</p>
+            <p id="orderReference" class="text-muted"></p>
+            <a class="btn btn-success" href="shop.html">Continue shopping</a>
+            <a class="btn btn-outline-secondary" href="orders.html">View orders</a>
+        </div>
+    </div>
+</main>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/store.js"></script>
+<script>
+    try {
+        const order = JSON.parse(sessionStorage.getItem("bmazon.lastOrder") || "{}");
+        const reference = order.orderId || order.id || order.SK;
+        if (reference) document.getElementById("orderReference").textContent = `Reference: ${reference}`;
+        if (new URLSearchParams(location.search).has("session_id")) {
+            BmazonCart.clear();
+            sessionStorage.removeItem("bmazon.checkoutKey");
+        }
+    } catch (_) {}
+</script>
+</body>
+</html>

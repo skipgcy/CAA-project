@@ -467,7 +467,7 @@
                     <div class="col-12">
                         <p class="text-left text-light">
                             Copyright &copy; 2026 Group 2
-                            | Designed by Chenyu and Shahab</a>
+                            | Designed by Chenyu</a>
                         </p>
                     </div>
                 </div>
@@ -483,12 +483,13 @@
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/templatemo.js"></script>
     <script src="assets/js/custom.js"></script>
+    <script src="assets/js/config.js"></script>
     <script>
 let products = [];
 
 // 1. 从 API 拉 DynamoDB 数据
 async function loadProducts() {
-  const res = await fetch("https://gm7tjln2c4.execute-api.us-east-1.amazonaws.com/prod/products");
+  const res = await fetch(`${BMAZON_CONFIG.apiBaseUrl}/products`);
   const data = await res.json();
 
   console.log("API RAW DATA:", data);
