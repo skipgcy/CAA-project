@@ -2,11 +2,20 @@
     "use strict";
 
     const CART_KEY = "bmazon.cart.v1";
+    const OLD_ASSET_ORIGIN = "https://chenyu-caa900-project.s3.us-east-1.amazonaws.com";
+
+    function assetUrl(value) {
+        return typeof value === "string" && value.startsWith(OLD_ASSET_ORIGIN)
+            ? value.replace(OLD_ASSET_ORIGIN, window.location.origin)
+            : value;
+    }
 
     function readCart() {
         try {
             const value = JSON.parse(localStorage.getItem(CART_KEY));
-            return Array.isArray(value) ? value : [];
+            return Array.isArray(value)
+                ? value.map((item) => ({ ...item, imageUrl: assetUrl(item.imageUrl) }))
+                : [];
         } catch (error) {
             console.warn("Unable to read shopping cart", error);
             return [];
@@ -43,7 +52,7 @@
                 productId: product.productId,
                 name: product.name,
                 price: Number(product.price),
-                imageUrl: product.imageUrl,
+                imageUrl: assetUrl(product.imageUrl),
                 quantity: Math.min(requested, Number(product.stock) || requested)
             });
         }

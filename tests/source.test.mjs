@@ -21,5 +21,6 @@ test("HTML pages contain no former team attribution or legacy API IDs", async ()
     const contents = await Promise.all(files.map((name) => readFile(name, "utf8")));
     const combined = contents.join("\n");
     assert.doesNotMatch(combined, /and Shahab/);
+    assert.doesNotMatch(combined, /Group 2|Copyright &copy;/);
     assert.doesNotMatch(combined, /gm7tjln2c4|eath06x9v8/);
 });

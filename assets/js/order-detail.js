@@ -1,6 +1,10 @@
 (function () {
     "use strict";
     const money = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" });
+    const oldAssetOrigin = "https://chenyu-caa900-project.s3.us-east-1.amazonaws.com";
+    function assetUrl(value) {
+        return typeof value === "string" ? value.replace(oldAssetOrigin, location.origin) : "";
+    }
     function escapeHtml(value) {
         const node = document.createElement("div");
         node.textContent = String(value ?? "");
@@ -24,7 +28,7 @@
                 </div><div class="card-body">
                 <p class="text-muted">Placed ${new Date(order.createdAt).toLocaleString("en-CA")}</p>
                 <h2 class="h5">Items</h2>${order.items.map((item) => `<div class="d-flex align-items-center justify-content-between border-bottom py-3">
-                    <div class="d-flex align-items-center gap-3"><img src="${escapeHtml(item.imageUrl)}" alt="" width="64" height="64" class="rounded" style="object-fit:cover">
+                    <div class="d-flex align-items-center gap-3"><img src="${escapeHtml(assetUrl(item.imageUrl))}" alt="" width="64" height="64" class="rounded" style="object-fit:cover">
                     <div><strong>${escapeHtml(item.name)}</strong><br><span class="text-muted">Quantity: ${item.quantity}</span></div></div>
                     <span>${money.format(item.unitPrice * item.quantity)}</span></div>`).join("")}
                 <div class="row mt-4"><div class="col-md-6"><h2 class="h5">Shipping address</h2>
