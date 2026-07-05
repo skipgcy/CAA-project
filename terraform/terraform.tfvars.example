@@ -1,0 +1,23 @@
+aws_region            = "us-east-1"
+environment           = "prod"
+domain_name           = "ezei.shop"
+website_bucket_name   = "chenyu-caa900-project"
+ses_from_email        = "chenyugao.ca@gmail.com"
+cognito_domain_prefix = "ezei-shop-auth"
+github_repository     = "skipgcy/CAA-project"
+
+# Set only after the Cognito user already exists.
+admin_username = null
+
+# For a fresh environment these clean names are suitable. During migration,
+# replace values with the existing Lambda physical names before importing.
+lambda_function_names = {
+  products           = "bmazon-products"
+  product            = "bmazon-product"
+  orders             = "bmazon-orders"
+  admin_orders       = "bmazon-admin-orders"
+  payment            = "bmazon-payment"
+  stripe_webhook     = "bmazon-stripe-webhook"
+  notification       = "bmazon-notification"
+  order_notification = "bmazon-order-notification"
+}
