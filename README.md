@@ -51,5 +51,6 @@ python -m http.server 4173 --bind 127.0.0.1
 - `.github/workflows/ci.yml` runs unit tests, IaC lint, and a complete SAM build.
 - `.github/workflows/deploy.yml` deploys `main` to AWS using GitHub OIDC short-lived credentials.
 - `infra/github-oidc-template.yaml` defines the repository trust and deployment roles.
+- `terraform/` contains a validated Terraform representation and a safe CloudFormation migration guide.
 
 No AWS access keys or Stripe secret values are stored in this repository. Runtime settings are in `assets/js/config.js`; Stripe values remain in AWS Secrets Manager.

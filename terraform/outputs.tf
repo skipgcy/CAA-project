@@ -1,0 +1,9 @@
+output "website_url" { value = local.frontend_origin }
+output "api_url" { value = "https://${local.api_domain}" }
+output "api_gateway_default_url" { value = aws_apigatewayv2_stage.prod.invoke_url }
+output "cloudfront_distribution_id" { value = aws_cloudfront_distribution.website.id }
+output "website_bucket" { value = aws_s3_bucket.website.id }
+output "cognito_user_pool_id" { value = aws_cognito_user_pool.customers.id }
+output "cognito_client_id" { value = aws_cognito_user_pool_client.web.id }
+output "stripe_secret_arn" { value = aws_secretsmanager_secret.stripe.arn }
+output "github_deploy_role_arn" { value = aws_iam_role.github_deploy.arn }
