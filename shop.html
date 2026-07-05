@@ -488,7 +488,8 @@ let products = [];
 
 // 1. 从 API 拉 DynamoDB 数据
 async function loadProducts() {
-  const res = await fetch(`${BMAZON_CONFIG.apiBaseUrl}/products`);
+  const res = await fetch(`${BMAZON_CONFIG.apiBaseUrl}/products`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Unable to load current product inventory.");
   const data = await res.json();
 
   console.log("API RAW DATA:", data);
@@ -515,6 +516,11 @@ function renderProducts(list) {
 
     console.log("product item:", p);
 
+    const stock = Math.max(0, Number(p.stock) || 0);
+    const inventory = stock === 0
+      ? '<span class="badge bg-danger">Sold out</span>'
+      : `<span class="badge bg-success">${stock} in stock</span>`;
+
     container.innerHTML += `
       <div class="col-md-4 mb-4">
         <a href="shop-product-detail.html?id=${p.SK}" class="text-decoration-none text-dark">
@@ -525,6 +531,7 @@ function renderProducts(list) {
             <div class="card-body">
               <h3>${p.name}</h3>
               <p>$${p.price}</p>
+              <p class="mb-0">${inventory}</p>
             </div>
           </div>
         </a>

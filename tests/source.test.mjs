@@ -16,6 +16,23 @@ test("SAM template protects APIs and supports PATCH CORS", async () => {
     assert.match(template, /Path: \/admin\/orders/);
 });
 
+test("order creation atomically decrements inventory and prevents overselling", async () => {
+    const source = await readFile("backend/functions/order/index.mjs", "utf8");
+    assert.match(source, /TransactWriteCommand/);
+    assert.match(source, /SET stock = stock - :qty/);
+    assert.match(source, /stock >= :qty/);
+    assert.match(source, /TransactionCanceledException/);
+});
+
+test("storefront displays live stock and disables sold-out purchases", async () => {
+    const shop = await readFile("shop.html", "utf8");
+    const detail = await readFile("shop-product-detail.html", "utf8");
+    assert.match(shop, /cache: "no-store"/);
+    assert.match(shop, /Sold out/);
+    assert.match(detail, /addCartBtn.*disabled = soldOut/);
+    assert.match(detail, /buyBtn.*disabled = soldOut/);
+});
+
 test("HTML pages contain no former team attribution or legacy API IDs", async () => {
     const files = (await readdir(".")).filter((name) => name.endsWith(".html"));
     const contents = await Promise.all(files.map((name) => readFile(name, "utf8")));
