@@ -448,7 +448,7 @@
                     <div class="col-12">
                         <p class="text-left text-light">
                             Copyright &copy; 2026 Group 2
-                            | Designed by Chenyu and Shahab</a>
+                            | Designed by Chenyu</a>
                         </p>
                     </div>
                 </div>
@@ -464,16 +464,10 @@
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/templatemo.js"></script>
     <script src="assets/js/custom.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
     <script>
-const API_URL = "https://eath06x9v8.execute-api.us-east-1.amazonaws.com/";
-
-async function callAPI() {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-
-    document.getElementById("result").innerText =
-        JSON.stringify(data, null, 2);
-}
+        BmazonAuth.handleCallback().catch((error) => console.error("Authentication callback failed", error));
     </script>
     <script>
         function logout() {
@@ -483,7 +477,7 @@ async function callAPI() {
             localStorage.removeItem("user");
 
             // 跳回首页或 login
-            window.location.href = "index.html";
+            BmazonAuth.logout();
         }
     </script>
     <!-- End Script -->

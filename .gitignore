@@ -1,0 +1,7 @@
+backend/node_modules/
+.aws-sam*/
+samconfig.toml
+*.zip
+.env
+.env.*
+!.env.example

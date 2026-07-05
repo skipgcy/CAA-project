@@ -1,0 +1,18 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "bmazon-backend"
+resolve_s3 = true
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+parameter_overrides = [
+  "FrontendOrigin=https://ezei.shop",
+  "UserPoolId=us-east-1_CXzowESmL",
+  "UserPoolClientId=1p0e84nqerhr6lktjd75j95rn0",
+  "EcommerceTableName=Ecommerce",
+  "IdempotencyTableName=OrderIdempotency",
+  "OrderTopicArn=REPLACE_WITH_TOPIC_ARN",
+  "StripeSecretId=REPLACE_WITH_SECRET_ARN",
+  "FromEmail=REPLACE_WITH_VERIFIED_EMAIL"
+]

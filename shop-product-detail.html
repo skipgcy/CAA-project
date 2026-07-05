@@ -719,7 +719,7 @@
                     <div class="col-12">
                         <p class="text-left text-light">
                             Copyright &copy; 2026 Group 2
-                            | Designed by Chenyu and Shahab</a>
+                            | Designed by Chenyu</a>
                         </p>
                     </div>
                 </div>
@@ -735,6 +735,8 @@
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/templatemo.js"></script>
     <script src="assets/js/custom.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/store.js"></script>
     <!-- End Script -->
 
     <!-- Start Slider Script -->
@@ -773,7 +775,7 @@
     <!-- End Slider Script -->
     <script>
 
-        const API = "https://gm7tjln2c4.execute-api.us-east-1.amazonaws.com/prod/products";
+        const API = `${BMAZON_CONFIG.apiBaseUrl}/products`;
 
         let product = null;
         let quantity = 1;
@@ -853,31 +855,14 @@
 
             // ===== CART =====
             document.getElementById("addCartBtn").onclick = () => {
-
-                let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-                const existing = cart.find(i => i.productId === product.productId);
-
-                if (existing) {
-                    existing.quantity += quantity;
-                } else {
-                    cart.push({
-                        productId: product.productId,
-                        name: product.name,
-                        price: product.price,
-                        imageUrl: product.imageUrl,
-                        quantity: quantity
-                    });
-                }
-
-                localStorage.setItem("cart", JSON.stringify(cart));
-
+                BmazonCart.add(product, quantity);
                 alert("Added to cart!");
             };
 
             // ===== BUY =====
             document.getElementById("buyBtn").onclick = () => {
-                alert(`Proceeding to checkout: ${quantity} item(s)`);
+                BmazonCart.add(product, quantity);
+                window.location.href = "checkout.html";
             };
         }
 
