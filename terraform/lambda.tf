@@ -62,20 +62,26 @@ resource "aws_lambda_function" "app" {
   tracing_config { mode = "Active" }
 
   environment {
-    variables = merge({
-      TABLE_NAME        = aws_dynamodb_table.ecommerce.name
-      IDEMPOTENCY_TABLE = aws_dynamodb_table.idempotency.name
-      ORDER_TOPIC_ARN   = aws_sns_topic.orders.arn
-      }, contains(["payment", "stripe_webhook"], each.key) ? {
-      STRIPE_SECRET_ID = aws_secretsmanager_secret.stripe.arn
-      } : {}, contains(["payment", "order_notification"], each.key) ? {
-      FRONTEND_URL = local.frontend_origin
-      } : {}, each.key == "order_notification" ? {
-      FROM_EMAIL = var.ses_from_email
-      } : {}, each.key == "admin_products" ? {
-      WEBSITE_BUCKET_NAME = aws_s3_bucket.website.id
-      FRONTEND_URL         = local.frontend_origin
-    } : {})
+    variables = merge(
+      {
+        TABLE_NAME        = aws_dynamodb_table.ecommerce.name
+        IDEMPOTENCY_TABLE = aws_dynamodb_table.idempotency.name
+        ORDER_TOPIC_ARN   = aws_sns_topic.orders.arn
+      },
+      contains(["payment", "stripe_webhook"], each.key) ? {
+        STRIPE_SECRET_ID = aws_secretsmanager_secret.stripe.arn
+      } : {},
+      contains(["payment", "order_notification"], each.key) ? {
+        FRONTEND_URL = local.frontend_origin
+      } : {},
+      each.key == "order_notification" ? {
+        FROM_EMAIL = var.ses_from_email
+      } : {},
+      each.key == "admin_products" ? {
+        WEBSITE_BUCKET_NAME = aws_s3_bucket.website.id
+        FRONTEND_URL        = local.frontend_origin
+      } : {}
+    )
   }
 
   depends_on = [aws_iam_role_policy.lambda]
