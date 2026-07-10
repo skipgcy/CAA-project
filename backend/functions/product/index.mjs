@@ -6,9 +6,9 @@ export const handler = async () => {
     try {
         const result = await db.send(new ScanCommand({
             TableName: TABLE_NAME,
-            FilterExpression: "PK = :pk",
-            ExpressionAttributeValues: { ":pk": "PRODUCT" },
-            ProjectionExpression: "PK, SK, productId, #n, price, color, brand, category, stock, imageUrl, images, description, specification, rating, reviews",
+            FilterExpression: "PK = :pk AND (attribute_not_exists(isActive) OR isActive = :active)",
+            ExpressionAttributeValues: { ":pk": "PRODUCT", ":active": true },
+            ProjectionExpression: "PK, SK, productId, #n, price, color, brand, category, model, stock, imageUrl, images, description, specification, rating, reviews, isActive",
             ExpressionAttributeNames: { "#n": "name" }
         }));
         const products = (result.Items || []).sort((a, b) => a.SK.localeCompare(b.SK));

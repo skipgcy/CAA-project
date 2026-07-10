@@ -72,6 +72,9 @@ resource "aws_lambda_function" "app" {
       FRONTEND_URL = local.frontend_origin
       } : {}, each.key == "order_notification" ? {
       FROM_EMAIL = var.ses_from_email
+      } : {}, each.key == "admin_products" ? {
+      WEBSITE_BUCKET_NAME = aws_s3_bucket.website.id
+      FRONTEND_URL         = local.frontend_origin
     } : {})
   }
 

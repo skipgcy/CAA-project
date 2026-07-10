@@ -782,6 +782,7 @@
         document.addEventListener("DOMContentLoaded", loadProduct);
 
         async function loadProduct() {
+            try {
 
             const params = new URLSearchParams(window.location.search);
             const id = params.get("id");
@@ -793,9 +794,18 @@
             console.log("STATUS =", res.status);
 
             product = await res.json();
+            if (!res.ok || product?.isActive === false) {
+                throw new Error(product?.message || "Product not found.");
+            }
             console.log("PRODUCT =", product);
 
             renderProduct(product);
+            } catch (error) {
+                document.getElementById("productName").innerText = "Product unavailable";
+                document.getElementById("productDescription").innerText = error.message;
+                document.getElementById("addCartBtn").disabled = true;
+                document.getElementById("buyBtn").disabled = true;
+            }
         }
 
         function renderProduct(product) {
@@ -820,8 +830,16 @@
                 `⭐ ${product.rating} | ${product.reviews} Reviews`;
 
             // ===== SPEC =====
+            const specs = Array.isArray(product.specification)
+                ? product.specification
+                : Object.entries(product.specification || {}).map(([key, value]) => `${key}: ${value}`);
+
             document.getElementById("productSpecs").innerHTML =
-                (product.specification || [])
+                [
+                    product.model ? `Model: ${product.model}` : "",
+                    ...specs
+                ]
+                    .filter(Boolean)
                     .map(s => `<li>${s}</li>`)
                     .join("");
 

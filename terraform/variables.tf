@@ -52,6 +52,7 @@ variable "lambda_function_names" {
     product            = "bmazon-product"
     orders             = "bmazon-orders"
     admin_orders       = "bmazon-admin-orders"
+    admin_products     = "bmazon-admin-products"
     payment            = "bmazon-payment"
     stripe_webhook     = "bmazon-stripe-webhook"
     notification       = "bmazon-notification"

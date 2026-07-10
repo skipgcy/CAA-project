@@ -18,6 +18,9 @@ Parameters:
   IdempotencyTableName:
     Type: String
     Default: OrderIdempotency
+  WebsiteBucketName:
+    Type: String
+    Default: chenyu-caa900-project
   OrderTopicArn:
     Type: String
   StripeSecretId:
@@ -43,7 +46,7 @@ Globals:
     CorsConfiguration:
       AllowOrigins: [!Ref FrontendOrigin]
       AllowHeaders: [authorization, content-type, idempotency-key, stripe-signature]
-      AllowMethods: [GET, POST, PATCH, OPTIONS]
+      AllowMethods: [GET, POST, PATCH, DELETE, OPTIONS]
       MaxAge: 600
 
 Resources:
@@ -149,6 +152,53 @@ Resources:
             ApiId: !Ref BmazonApi
             Path: /admin/orders/{id}
             Method: PATCH
+
+  AdminProductsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: functions/admin-products/index.handler
+      Environment:
+        Variables:
+          WEBSITE_BUCKET_NAME: !Ref WebsiteBucketName
+          FRONTEND_URL: !Ref FrontendOrigin
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref EcommerceTableName }
+        - DynamoDBWritePolicy: { TableName: !Ref EcommerceTableName }
+        - Statement:
+            - Effect: Allow
+              Action: s3:PutObject
+              Resource: !Sub arn:aws:s3:::${WebsiteBucketName}/assets/img/products/*
+      Events:
+        ListAdminProducts:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /admin/products
+            Method: GET
+        CreateAdminProduct:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /admin/products
+            Method: POST
+        UploadAdminProductImage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /admin/products/images
+            Method: POST
+        UpdateAdminProduct:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /admin/products/{id}
+            Method: PATCH
+        DeleteAdminProduct:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref BmazonApi
+            Path: /admin/products/{id}
+            Method: DELETE
 
   PaymentFunction:
     Type: AWS::Serverless::Function

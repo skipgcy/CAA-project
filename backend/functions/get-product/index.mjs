@@ -6,7 +6,7 @@ export const handler = async (event) => {
         const productId = event?.pathParameters?.id;
         if (!productId) return response(400, { message: "Product ID is required." });
         const product = await getProduct(productId);
-        return product
+        return product && product.isActive !== false
             ? response(200, product)
             : response(404, { message: "Product not found." });
     } catch (error) {
