@@ -135,7 +135,7 @@
             <div class="w-100 pt-1 mb-5 text-right">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="" method="get" class="modal-content modal-body border-0 p-0">
+            <form action="shop.html" method="get" class="modal-content modal-body border-0 p-0">
                 <div class="input-group mb-2">
                     <input type="text" class="form-control" id="inputModalSearch" name="q" placeholder="Search ...">
                     <button type="submit" class="input-group-text bg-success text-light">
@@ -238,6 +238,19 @@
                                 <option>Item</option>
                             </select>
                         </div>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <form id="productSearchForm" class="input-group">
+                            <input type="search" class="form-control" id="productSearchInput"
+                                placeholder="Search by keyword, full product name, or product ID (for example P001)">
+                            <button class="btn btn-success" type="submit">
+                                <i class="fa fa-fw fa-search text-white"></i> Search
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" id="clearProductSearch">Clear</button>
+                        </form>
+                        <p class="text-muted small mt-2 mb-0" id="searchSummary"></p>
                     </div>
                 </div>
                     <div class="row" id="productGrid"></div>
@@ -485,28 +498,87 @@
     <script src="assets/js/config.js"></script>
     <script>
 let products = [];
+let currentCategory = "All";
+let currentQuery = "";
+
+function normalizeSearch(value) {
+  return String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function productId(p) {
+  return p?.productId || p?.id || p?.SK || "";
+}
+
+function searchableText(p) {
+  const specs = Array.isArray(p.specification)
+    ? p.specification
+    : Object.entries(p.specification || {}).map(([key, value]) => `${key} ${value}`);
+
+  return normalizeSearch([
+    productId(p), p.SK, p.name, p.brand, p.category, p.model, p.color,
+    p.description, ...(p.images || []), ...specs
+  ].filter(Boolean).join(" "));
+}
+
+function matchesQuery(p, query) {
+  const normalized = normalizeSearch(query);
+  if (!normalized) return true;
+  const haystack = searchableText(p);
+  return normalized.split(/\s+/).every(term => haystack.includes(term));
+}
+
+function matchesCategory(p, category) {
+  if (!category || category === "All") return true;
+  if (!p.category) return false;
+  const categories = Array.isArray(p.category) ? p.category : [p.category];
+  return categories.map(c => String(c).toLowerCase()).includes(category.toLowerCase());
+}
+
+function applyFilters() {
+  renderProducts(products.filter(p => matchesCategory(p, currentCategory) && matchesQuery(p, currentQuery)));
+}
 
 // 1. 从 API 拉 DynamoDB 数据
 async function loadProducts() {
-  const res = await fetch(`${BMAZON_CONFIG.apiBaseUrl}/products`);
+  const res = await fetch(`${BMAZON_CONFIG.apiBaseUrl}/products`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Unable to load current product inventory.");
   const data = await res.json();
 
   console.log("API RAW DATA:", data);
 
-  products =
-  data?.Items ||
-  data ||
-  (data?.body ? JSON.parse(data.body) : []);
+  products = (
+    data?.Items ||
+    data ||
+    (data?.body ? JSON.parse(data.body) : [])
+  ).filter(p => p && p.isActive !== false);
 
   console.log("PARSED PRODUCTS:", products);
 
-  renderProducts(products);
+  applyFilters();
 }
 
 // 2. 渲染
 function renderProducts(list) {
   const container = document.getElementById("productGrid");
   container.innerHTML = "";
+
+  const summary = document.getElementById("searchSummary");
+  if (summary) {
+    const queryText = currentQuery ? ` matching "${currentQuery}"` : "";
+    const categoryText = currentCategory && currentCategory !== "All" ? ` in ${currentCategory}` : "";
+    summary.textContent = `${list.length} product${list.length === 1 ? "" : "s"} found${queryText}${categoryText}.`;
+  }
+
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="col-12">
+        <div class="alert alert-info">
+          No products found. Try another product name, keyword, or product ID.
+        </div>
+      </div>
+    `;
+    return;
+  }
 
   console.log("RENDER LIST:", list);
 
@@ -515,16 +587,23 @@ function renderProducts(list) {
 
     console.log("product item:", p);
 
+    const stock = Math.max(0, Number(p.stock) || 0);
+    const inventory = stock === 0
+      ? '<span class="badge bg-danger">Sold out</span>'
+      : `<span class="badge bg-success">${stock} in stock</span>`;
+
     container.innerHTML += `
       <div class="col-md-4 mb-4">
-        <a href="shop-product-detail.html?id=${p.SK}" class="text-decoration-none text-dark">
+        <a href="shop-product-detail.html?id=${productId(p)}" class="text-decoration-none text-dark">
           <div class="card product-wap rounded-0">
             <div class="card rounded-0">
               <img class="card-img rounded-0 img-fluid" src="${p.imageUrl}">
             </div>
             <div class="card-body">
               <h3>${p.name}</h3>
+              <p class="text-muted small mb-1">${productId(p)}</p>
               <p>$${p.price}</p>
+              <p class="mb-0">${inventory}</p>
             </div>
           </div>
         </a>
@@ -535,34 +614,60 @@ function renderProducts(list) {
 
 // 3. category filter
 function filterByCategory(category) {
-  if (!category || category === "All") {
-    renderProducts(products);
-    return;
+  currentCategory = category || "All";
+  applyFilters();
+}
+
+function setSearch(query, updateUrl = true) {
+  currentQuery = String(query || "").trim();
+  const productSearch = document.getElementById("productSearchInput");
+  const modalSearch = document.getElementById("inputModalSearch");
+  const mobileSearch = document.getElementById("inputMobileSearch");
+  if (productSearch) productSearch.value = currentQuery;
+  if (modalSearch) modalSearch.value = currentQuery;
+  if (mobileSearch) mobileSearch.value = currentQuery;
+
+  if (updateUrl) {
+    const url = new URL(window.location.href);
+    currentQuery ? url.searchParams.set("q", currentQuery) : url.searchParams.delete("q");
+    history.replaceState({}, document.title, url);
   }
 
-const filtered = products.filter(p => {
-  if (!p.category) return false;
-
-  const categories = Array.isArray(p.category)
-    ? p.category
-    : [p.category];
-
-  return categories
-    .map(c => c.toLowerCase())
-    .includes(category.toLowerCase());
-});
-
-  renderProducts(filtered);
+  applyFilters();
 }
 
 // 4. init
 document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  currentQuery = params.get("q") || "";
+  document.getElementById("productSearchInput").value = currentQuery;
+  document.getElementById("inputModalSearch").value = currentQuery;
+  document.getElementById("inputMobileSearch").value = currentQuery;
   loadProducts();
+
+  document.getElementById("productSearchForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    setSearch(document.getElementById("productSearchInput").value);
+  });
+
+  document.getElementById("templatemo_search").querySelector("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    setSearch(document.getElementById("inputModalSearch").value);
+    const modal = bootstrap.Modal.getInstance(document.getElementById("templatemo_search"));
+    if (modal) modal.hide();
+  });
+
+  document.getElementById("inputMobileSearch").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") setSearch(e.target.value);
+  });
+
+  document.getElementById("clearProductSearch").addEventListener("click", () => setSearch(""));
 
   // ✅ 1. ALL 按钮
   document.getElementById("filterAll").addEventListener("click", (e) => {
     e.preventDefault();
-    renderProducts(products); // reset
+    currentCategory = "All";
+    applyFilters();
   });
 
   // ✅ 2. 左侧 category filter

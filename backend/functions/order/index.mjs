@@ -95,7 +95,7 @@ export const handler = async (event) => {
 
         const products = await Promise.all(requested.map(async (item) => {
             const product = await getProduct(item.productId);
-            if (!product) {
+            if (!product || product.isActive === false) {
                 const error = new Error(`Product ${item.productId} was not found.`);
                 error.statusCode = 400;
                 throw error;
@@ -120,8 +120,8 @@ export const handler = async (event) => {
                 TableName: TABLE_NAME,
                 Key: { PK: "PRODUCT", SK: item.productId },
                 UpdateExpression: "SET stock = stock - :qty",
-                ConditionExpression: "attribute_exists(SK) AND stock >= :qty",
-                ExpressionAttributeValues: { ":qty": item.quantity }
+                ConditionExpression: "attribute_exists(SK) AND stock >= :qty AND (attribute_not_exists(isActive) OR isActive = :active)",
+                ExpressionAttributeValues: { ":qty": item.quantity, ":active": true }
             }
         }));
         transaction.push(

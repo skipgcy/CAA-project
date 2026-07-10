@@ -782,6 +782,7 @@
         document.addEventListener("DOMContentLoaded", loadProduct);
 
         async function loadProduct() {
+            try {
 
             const params = new URLSearchParams(window.location.search);
             const id = params.get("id");
@@ -789,13 +790,22 @@
 
             if (!id) return;
 
-            const res = await fetch(`${API}/${id}`);
+            const res = await fetch(`${API}/${id}`, { cache: "no-store" });
             console.log("STATUS =", res.status);
 
             product = await res.json();
+            if (!res.ok || product?.isActive === false) {
+                throw new Error(product?.message || "Product not found.");
+            }
             console.log("PRODUCT =", product);
 
             renderProduct(product);
+            } catch (error) {
+                document.getElementById("productName").innerText = "Product unavailable";
+                document.getElementById("productDescription").innerText = error.message;
+                document.getElementById("addCartBtn").disabled = true;
+                document.getElementById("buyBtn").disabled = true;
+            }
         }
 
         function renderProduct(product) {
@@ -808,15 +818,28 @@
             document.getElementById("productColor").innerText = product.color;
 
             document.getElementById("productStock").innerText =
-                `Stock: ${product.stock}`;
+                Number(product.stock) > 0 ? `Stock: ${product.stock}` : "Sold out";
+
+            const soldOut = Number(product.stock) <= 0;
+            document.getElementById("addCartBtn").disabled = soldOut;
+            document.getElementById("buyBtn").disabled = soldOut;
+            document.getElementById("btn-plus").disabled = soldOut;
 
             // ===== RATING & REVIEWS =====
             document.getElementById("productRating").innerHTML =
                 `⭐ ${product.rating} | ${product.reviews} Reviews`;
 
             // ===== SPEC =====
+            const specs = Array.isArray(product.specification)
+                ? product.specification
+                : Object.entries(product.specification || {}).map(([key, value]) => `${key}: ${value}`);
+
             document.getElementById("productSpecs").innerHTML =
-                (product.specification || [])
+                [
+                    product.model ? `Model: ${product.model}` : "",
+                    ...specs
+                ]
+                    .filter(Boolean)
                     .map(s => `<li>${s}</li>`)
                     .join("");
 

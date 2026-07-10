@@ -1,7 +1,183 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bmazon - Admin Orders</title><link rel="stylesheet" href="assets/css/bootstrap.min.css"><link rel="stylesheet" href="assets/css/templatemo.css"></head>
-<body><nav class="navbar navbar-expand-lg navbar-light shadow"><div class="container"><a class="navbar-brand text-success logo h1" href="index.html">Bmazon</a><div class="navbar-nav ms-auto"><a class="nav-link" href="orders.html">My orders</a><a class="nav-link" href="index.html">Store</a></div></div></nav>
-<main class="container py-5"><div class="d-flex justify-content-between align-items-center mb-4"><div><h1 class="h2">Order administration</h1><p class="text-muted mb-0">Update fulfilment status and notify customers.</p></div><button class="btn btn-outline-secondary" onclick="location.reload()">Refresh</button></div>
-<div id="adminMessage" class="alert d-none"></div><div id="adminOrdersContent"><div class="text-center py-5"><div class="spinner-border text-success"></div><p class="mt-3">Loading all orders…</p></div></div></main>
-<footer class="bg-dark text-light py-4 mt-5"><div class="container">Copyright &amp; Designed by Chenyu</div></footer>
-<script src="assets/js/bootstrap.bundle.min.js"></script><script src="assets/js/config.js"></script><script src="assets/js/auth.js"></script><script src="assets/js/admin-orders.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Bmazon - Admin Console</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/templatemo.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light shadow">
+        <div class="container">
+            <a class="navbar-brand text-success logo h1" href="index.html">Bmazon</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="orders.html">My orders</a>
+                <a class="nav-link" href="shop.html">Store</a>
+                <a class="nav-link" href="index.html">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h1 class="h2">Admin Console</h1>
+                <p class="text-muted mb-0">Manage orders and products with Cognito Admins-only access.</p>
+            </div>
+            <button class="btn btn-outline-secondary" onclick="location.reload()">Refresh</button>
+        </div>
+
+        <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#ordersPanel"
+                    type="button" role="tab">Orders</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#productsPanel"
+                    type="button" role="tab">Products</button>
+            </li>
+        </ul>
+
+        <div id="adminMessage" class="alert d-none"></div>
+
+        <div class="tab-content">
+            <section class="tab-pane fade show active" id="ordersPanel" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h2 class="h4 mb-1">Order administration</h2>
+                        <p class="text-muted mb-0">Update fulfilment status and notify customers.</p>
+                    </div>
+                </div>
+                <div id="adminOrdersContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-success"></div>
+                        <p class="mt-3">Loading all orders…</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tab-pane fade" id="productsPanel" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h2 class="h4 mb-0" id="productFormTitle">Add product</h2>
+                                    <button class="btn btn-link btn-sm" id="resetProductForm" type="button">Clear</button>
+                                </div>
+                                <p class="text-muted small">Images can be existing HTTPS/S3/CloudFront URLs. Put one detail image URL per line.</p>
+                                <form id="adminProductForm" class="row g-3">
+                                    <input type="hidden" id="editingProductId">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="productId">Product ID</label>
+                                        <input class="form-control" id="productId" maxlength="60" placeholder="iphone-15-pro">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="productStock">Stock</label>
+                                        <input class="form-control" id="productStock" type="number" min="0" value="0" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" for="productName">Name</label>
+                                        <input class="form-control" id="productName" maxlength="120" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="productPrice">Price</label>
+                                        <input class="form-control" id="productPrice" type="number" min="0" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="productBrand">Brand</label>
+                                        <input class="form-control" id="productBrand" maxlength="80">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="productCategory">Category</label>
+                                        <input class="form-control" id="productCategory" maxlength="80" placeholder="Smartphone">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="productModel">Model</label>
+                                        <input class="form-control" id="productModel" maxlength="80" placeholder="A3101">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="productColor">Color</label>
+                                        <input class="form-control" id="productColor" maxlength="80">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="productRating">Rating</label>
+                                        <input class="form-control" id="productRating" type="number" min="0" max="5" step="0.1" value="5">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label" for="productReviews">Reviews</label>
+                                        <input class="form-control" id="productReviews" type="number" min="0" value="0">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" for="productImageUrl">Thumbnail image URL</label>
+                                        <input class="form-control" id="productImageUrl" type="url" placeholder="https://..." required>
+                                        <div class="mt-2">
+                                            <label class="form-label small text-muted" for="productThumbnailFile">Or upload a thumbnail from this computer</label>
+                                            <input class="form-control form-control-sm" id="productThumbnailFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" for="productImages">Detail image URLs</label>
+                                        <textarea class="form-control" id="productImages" rows="3" placeholder="https://.../image-1.jpg&#10;https://.../image-2.jpg"></textarea>
+                                        <div class="mt-2">
+                                            <label class="form-label small text-muted" for="productDetailFiles">Or upload one or more detail images</label>
+                                            <input class="form-control form-control-sm" id="productDetailFiles" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+                                        </div>
+                                        <div class="form-text" id="productUploadStatus"></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" for="productDescription">Description</label>
+                                        <textarea class="form-control" id="productDescription" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" for="productSpecification">Specifications</label>
+                                        <textarea class="form-control" id="productSpecification" rows="4" placeholder="Storage: 256GB&#10;Display: 6.1 inch&#10;Chip: A17 Pro"></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" id="productIsActive" type="checkbox" checked>
+                                            <label class="form-check-label" for="productIsActive">Visible in storefront</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 d-grid">
+                                        <button class="btn btn-success" type="submit" id="saveProductButton">Save product</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h2 class="h4 mb-1">Product catalog</h2>
+                                <p class="text-muted mb-0">Edit, restock, hide, or reactivate products.</p>
+                            </div>
+                        </div>
+                        <div id="adminProductsContent">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-success"></div>
+                                <p class="mt-3">Loading products…</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">Copyright &amp; Designed by Chenyu</div>
+    </footer>
+
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/admin-orders.js"></script>
+    <script src="assets/js/admin-products.js"></script>
+</body>
+
+</html>
