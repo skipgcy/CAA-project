@@ -797,6 +797,9 @@
             if (!res.ok || product?.isActive === false) {
                 throw new Error(product?.message || "Product not found.");
             }
+            // Restored legacy rows use the DynamoDB sort key as the product ID.
+            // Normalize it before the shared cart validates and stores the item.
+            product.productId = product.productId || product.id || product.SK || id;
             console.log("PRODUCT =", product);
 
             renderProduct(product);

@@ -1,0 +1,12 @@
+output "website_url" { value = local.frontend_origin }
+output "api_url" { value = "https://${var.dr_api_domain_name}" }
+output "api_gateway_default_url" { value = aws_apigatewayv2_stage.dr.invoke_url }
+output "cloudfront_distribution_id" { value = aws_cloudfront_distribution.website.id }
+output "website_bucket" { value = aws_s3_bucket.website.id }
+output "cognito_user_pool_id" { value = aws_cognito_user_pool.customers.id }
+output "cognito_client_id" { value = aws_cognito_user_pool_client.web.id }
+output "cognito_domain" { value = "${var.cognito_domain_prefix}.auth.${var.dr_region}.amazoncognito.com" }
+output "stripe_secret_arn" { value = aws_secretsmanager_secret.stripe.arn }
+output "restored_table_arn" { value = data.aws_dynamodb_table.ecommerce.arn }
+output "restored_table_name" { value = data.aws_dynamodb_table.ecommerce.name }
+output "dr_lambda_names" { value = local.lambda_names }

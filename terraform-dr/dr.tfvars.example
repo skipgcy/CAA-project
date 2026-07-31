@@ -1,0 +1,17 @@
+aws_profile                  = "CAA900"
+dr_region                    = "us-east-2"
+primary_region               = "us-east-1"
+aws_account_id               = "563960656220"
+hosted_zone_name             = "ezei.shop"
+dr_domain_name               = "dr.ezei.shop"
+dr_api_domain_name           = "api.dr.ezei.shop"
+dr_website_bucket_name       = "bmazon-dr-us-east-2-563960656220"
+production_table_name        = "Ecommerce"
+production_table_arn         = "arn:aws:dynamodb:us-east-1:563960656220:table/Ecommerce"
+restored_table_name          = "Ecommerce-DR"
+idempotency_table_name       = "OrderIdempotency-DR"
+ses_from_email               = "chenyugao.ca@gmail.com"
+cognito_domain_prefix        = "ezei-shop-dr-auth"
+source_stripe_secret_id      = "arn:aws:secretsmanager:us-east-1:563960656220:secret:bmazon/stripe-VUvhq2"
+backup_retention_days        = 7
+dr_recovery_point_retention  = 7

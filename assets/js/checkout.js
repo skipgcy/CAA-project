@@ -121,8 +121,10 @@
         try {
             const draft = JSON.parse(sessionStorage.getItem("bmazon.checkoutDraft") || "null");
             if (draft) {
+                const formField = { name: "customerName" };
                 Object.entries(draft).forEach(([name, value]) => {
-                    if (form.elements[name]) form.elements[name].value = value;
+                    const fieldName = formField[name] || name;
+                    if (form.elements[fieldName]) form.elements[fieldName].value = value;
                 });
             }
         } catch {
