@@ -102,6 +102,8 @@ test("CI and deployment workflows enforce Trivy and SonarQube before release", a
         assert.match(workflow, /scanners: vuln,secret,misconfig/);
         assert.match(workflow, /severity: HIGH,CRITICAL/);
         assert.match(workflow, /exit-code: 1/);
+        assert.match(workflow, /trivyignores: \.trivyignore\.yaml/);
+        assert.match(workflow, /TRIVY_SHOW_SUPPRESSED: true/);
         assert.match(workflow, /SonarSource\/sonarqube-scan-action@v8\.1\.0/);
         assert.match(workflow, /start-sonarqube\.sh/);
     }
@@ -112,6 +114,31 @@ test("CI and deployment workflows enforce Trivy and SonarQube before release", a
     const properties = await readFile("sonar-project.properties", "utf8");
     assert.match(properties, /sonar\.qualitygate\.wait=true/);
     assert.match(properties, /sonar\.qualitygate\.timeout=300/);
+
+    const trivyIgnore = await readFile(".trivyignore.yaml", "utf8");
+    assert.match(trivyIgnore, /AWS-0011/);
+    assert.match(trivyIgnore, /AWS-0132/);
+    assert.doesNotMatch(trivyIgnore, /AWS-0095/);
+});
+
+test("production and DR notification topics use AWS-managed SNS encryption", async () => {
+    const production = await readFile("terraform/stateful.tf", "utf8");
+    const dr = await readFile("terraform-dr/application/stateful.tf", "utf8");
+    for (const stateful of [production, dr]) {
+        assert.match(stateful, /resource "aws_sns_topic" "orders"/);
+        assert.match(stateful, /kms_master_key_id\s*=\s*"alias\/aws\/sns"/);
+    }
+});
+
+test("production and DR website buckets explicitly enable versioning and SSE-S3", async () => {
+    const production = await readFile("terraform/stateful.tf", "utf8");
+    const dr = await readFile("terraform-dr/application/stateful.tf", "utf8");
+    for (const stateful of [production, dr]) {
+        assert.match(stateful, /resource "aws_s3_bucket_versioning" "website"/);
+        assert.match(stateful, /resource "aws_s3_bucket_server_side_encryption_configuration" "website"/);
+        assert.match(stateful, /sse_algorithm\s*=\s*"AES256"/);
+        assert.match(stateful, /resource "aws_s3_bucket_public_access_block" "website"/);
+    }
 });
 
 test("DR infrastructure is isolated and has explicit destruction safeguards", async () => {

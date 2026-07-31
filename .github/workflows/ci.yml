@@ -26,12 +26,15 @@ jobs:
       - uses: hashicorp/setup-terraform@v4
       - name: Scan source, dependencies, secrets, and IaC with Trivy
         uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_SHOW_SUPPRESSED: true
         with:
           scan-type: fs
           scan-ref: .
           scanners: vuln,secret,misconfig
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          trivyignores: .trivyignore.yaml
           format: table
           exit-code: 1
       - name: Run automated tests

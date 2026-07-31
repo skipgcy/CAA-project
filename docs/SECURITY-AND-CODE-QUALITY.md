@@ -32,6 +32,25 @@ configuration in the repository. Findings rated HIGH or CRITICAL fail the job;
 unfixed upstream vulnerabilities are reported but do not block this student
 deployment.
 
+The first full scan identified three IaC rules. `AWS-0095` was remediated by
+enabling SNS encryption with the AWS-managed `alias/aws/sns` key in both the
+production and DR Terraform definitions. Two findings are recorded as explicit,
+time-limited risk acceptances in `.trivyignore.yaml`:
+
+- `AWS-0011`: WAF is intentionally omitted from this low-traffic capstone system
+  because its recurring cost is not justified. HTTPS, Cognito JWT authorization,
+  IAM controls, and security scans remain active.
+- `AWS-0132`: the affected S3 buckets contain public static website assets. Using
+  a customer-managed KMS key would add recurring cost and CloudFront key-policy
+  complexity without materially improving confidentiality for public files. Both
+  buckets explicitly enable versioning, public-access blocking, and SSE-S3
+  (`AES256`) encryption; the exception applies only to the additional requirement
+  for a customer-managed key.
+
+The exceptions are limited to the named IaC paths, contain written rationale,
+expire on 2026-12-31, and are displayed in scan output. `AWS-0095` is deliberately
+not suppressed. All other unfixed HIGH or CRITICAL findings continue to fail CI.
+
 Configuration locations:
 
 - `.github/workflows/ci.yml`

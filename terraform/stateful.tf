@@ -5,6 +5,20 @@ data "aws_route53_zone" "primary" {
 
 resource "aws_s3_bucket" "website" { bucket = var.website_bucket_name }
 
+resource "aws_s3_bucket_versioning" "website" {
+  bucket = aws_s3_bucket.website.id
+  versioning_configuration { status = "Enabled" }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "website" {
+  bucket = aws_s3_bucket.website.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "website" {
   bucket                  = aws_s3_bucket.website.id
   block_public_acls       = true
@@ -42,7 +56,10 @@ resource "aws_dynamodb_table" "idempotency" {
   }
 }
 
-resource "aws_sns_topic" "orders" { name = "order-notification" }
+resource "aws_sns_topic" "orders" {
+  name              = "order-notification"
+  kms_master_key_id = "alias/aws/sns"
+}
 
 resource "aws_secretsmanager_secret" "stripe" {
   name        = var.stripe_secret_name

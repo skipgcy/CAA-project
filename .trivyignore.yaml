@@ -1,0 +1,21 @@
+misconfigurations:
+  - id: AWS-0011
+    paths:
+      - "infra/domain-template.yaml"
+      - "terraform/cdn.tf"
+      - "terraform-dr/application/cdn.tf"
+    expired_at: "2026-12-31"
+    statement: >-
+      AWS WAF is intentionally omitted for this low-traffic capstone demonstration
+      to avoid recurring cost. CloudFront HTTPS, API Gateway JWT authorization,
+      least-privilege IAM, and automated security scans remain enabled.
+
+  - id: AWS-0132
+    paths:
+      - "terraform/stateful.tf"
+      - "terraform-dr/application/stateful.tf"
+    expired_at: "2026-12-31"
+    statement: >-
+      These buckets contain non-sensitive public website assets and use AWS-managed
+      server-side encryption. A customer-managed KMS key would add recurring cost
+      and CloudFront key-policy complexity without materially protecting public files.

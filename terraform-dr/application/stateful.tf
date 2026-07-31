@@ -18,6 +18,15 @@ resource "aws_s3_bucket_versioning" "website" {
   versioning_configuration { status = "Enabled" }
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "website" {
+  bucket = aws_s3_bucket.website.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "website" {
   bucket                  = aws_s3_bucket.website.id
   block_public_acls       = true
@@ -41,7 +50,10 @@ resource "aws_dynamodb_table" "idempotency" {
   point_in_time_recovery { enabled = true }
 }
 
-resource "aws_sns_topic" "orders" { name = "bmazon-dr-order-notification" }
+resource "aws_sns_topic" "orders" {
+  name              = "bmazon-dr-order-notification"
+  kms_master_key_id = "alias/aws/sns"
+}
 
 resource "aws_secretsmanager_secret" "stripe" {
   name                    = "bmazon-dr/stripe"
