@@ -46,10 +46,15 @@ time-limited risk acceptances in `.trivyignore.yaml`:
   buckets explicitly enable versioning, public-access blocking, and SSE-S3
   (`AES256`) encryption; the exception applies only to the additional requirement
   for a customer-managed key.
+- `AWS-0136`: order-notification topics use the AWS-managed SNS KMS key, fixing
+  the original unencrypted-topic finding (`AWS-0095`). A customer-managed key is
+  intentionally omitted to avoid recurring KMS key cost and key-policy operations
+  for this low-traffic demonstration.
 
 The exceptions are limited to the named IaC paths, contain written rationale,
 expire on 2026-12-31, and are displayed in scan output. `AWS-0095` is deliberately
-not suppressed. All other unfixed HIGH or CRITICAL findings continue to fail CI.
+not suppressed because the underlying encryption issue was fixed. All other
+unfixed HIGH or CRITICAL findings continue to fail CI.
 
 Configuration locations:
 

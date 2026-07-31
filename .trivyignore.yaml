@@ -19,3 +19,13 @@ misconfigurations:
       These buckets contain non-sensitive public website assets and use AWS-managed
       server-side encryption. A customer-managed KMS key would add recurring cost
       and CloudFront key-policy complexity without materially protecting public files.
+
+  - id: AWS-0136
+    paths:
+      - "terraform/stateful.tf"
+      - "terraform-dr/application/stateful.tf"
+    expired_at: "2026-12-31T23:59:59Z"
+    statement: >-
+      Order notification topics are encrypted with the AWS-managed SNS KMS key.
+      A customer-managed KMS key is intentionally omitted for this low-traffic
+      capstone demonstration to avoid recurring key cost and policy maintenance.
