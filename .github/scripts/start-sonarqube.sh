@@ -30,9 +30,9 @@ done
 
 # The instance is bound to localhost and exists only for this runner job. We still
 # replace the default password before creating a short-lived analysis token.
-# SonarQube local passwords must remain within its accepted length. A 16-byte
-# random value encoded as 32 hexadecimal characters provides 128 bits of entropy.
-admin_password="$(openssl rand -hex 16)"
+# SonarQube requires uppercase, lowercase, numeric, and special characters.
+# The fixed character-class prefix is followed by 128 bits of random entropy.
+admin_password="Aa1!$(openssl rand -hex 16)"
 echo "::add-mask::${admin_password}"
 
 if ! password_response="$(curl --silent --show-error --fail-with-body \
