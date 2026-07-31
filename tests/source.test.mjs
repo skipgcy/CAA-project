@@ -118,6 +118,7 @@ test("CI and deployment workflows enforce Trivy and SonarQube before release", a
     const trivyIgnore = await readFile(".trivyignore.yaml", "utf8");
     assert.match(trivyIgnore, /AWS-0011/);
     assert.match(trivyIgnore, /AWS-0132/);
+    assert.equal((trivyIgnore.match(/expired_at: "2026-12-31T23:59:59Z"/g) || []).length, 2);
     assert.doesNotMatch(trivyIgnore, /AWS-0095/);
 });
 

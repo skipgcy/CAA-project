@@ -4,7 +4,7 @@ misconfigurations:
       - "infra/domain-template.yaml"
       - "terraform/cdn.tf"
       - "terraform-dr/application/cdn.tf"
-    expired_at: "2026-12-31"
+    expired_at: "2026-12-31T23:59:59Z"
     statement: >-
       AWS WAF is intentionally omitted for this low-traffic capstone demonstration
       to avoid recurring cost. CloudFront HTTPS, API Gateway JWT authorization,
@@ -14,7 +14,7 @@ misconfigurations:
     paths:
       - "terraform/stateful.tf"
       - "terraform-dr/application/stateful.tf"
-    expired_at: "2026-12-31"
+    expired_at: "2026-12-31T23:59:59Z"
     statement: >-
       These buckets contain non-sensitive public website assets and use AWS-managed
       server-side encryption. A customer-managed KMS key would add recurring cost
