@@ -17,16 +17,53 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  security-and-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Security gate - Trivy source, dependency, secret, and IaC scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_SHOW_SUPPRESSED: true
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          trivyignores: .trivyignore.yaml
+          format: table
+          exit-code: 1
+      - name: Run automated tests
+        run: npm test
+      - name: Start isolated SonarQube Community Build
+        run: bash .github/scripts/start-sonarqube.sh
+      - name: SonarQube static analysis and Quality Gate
+        uses: SonarSource/sonarqube-scan-action@v8.1.0
+      - name: Record SonarQube result
+        run: bash .github/scripts/summarize-sonarqube.sh
+      - name: Stop isolated SonarQube
+        if: always()
+        run: docker rm --force sonarqube-ci >/dev/null 2>&1 || true
+
   deploy:
+    needs: security-and-quality
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
+          package-manager-cache: false
       - uses: aws-actions/setup-sam@v2
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6.1.2
         with:
           role-to-assume: arn:aws:iam::563960656220:role/bmazon-github-deploy
           aws-region: us-east-1
