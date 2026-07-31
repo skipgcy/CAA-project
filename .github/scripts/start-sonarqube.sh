@@ -30,19 +30,25 @@ done
 
 # The instance is bound to localhost and exists only for this runner job. We still
 # replace the default password before creating a short-lived analysis token.
-admin_password="$(openssl rand -hex 32)"
+# SonarQube local passwords must remain within its accepted length. A 16-byte
+# random value encoded as 32 hexadecimal characters provides 128 bits of entropy.
+admin_password="$(openssl rand -hex 16)"
 echo "::add-mask::${admin_password}"
 
-curl --silent --show-error --fail \
+if ! password_response="$(curl --silent --show-error --fail-with-body \
   --user admin:admin \
   --request POST \
   --data-urlencode login=admin \
   --data-urlencode previousPassword=admin \
   --data-urlencode "password=${admin_password}" \
-  "${SONAR_URL}/api/users/change_password" >/dev/null
+  "${SONAR_URL}/api/users/change_password")"; then
+  echo "SonarQube rejected the temporary administrator password." >&2
+  echo "${password_response}" >&2
+  exit 1
+fi
 
 token_name="github-actions-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-token_response="$(curl --silent --show-error --fail \
+token_response="$(curl --silent --show-error --fail-with-body \
   --user "admin:${admin_password}" \
   --request POST \
   --data-urlencode "name=${token_name}" \

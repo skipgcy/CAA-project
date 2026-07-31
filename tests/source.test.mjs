@@ -115,6 +115,11 @@ test("CI and deployment workflows enforce Trivy and SonarQube before release", a
     assert.match(properties, /sonar\.qualitygate\.wait=true/);
     assert.match(properties, /sonar\.qualitygate\.timeout=300/);
 
+    const sonarStartup = await readFile(".github/scripts/start-sonarqube.sh", "utf8");
+    assert.match(sonarStartup, /openssl rand -hex 16/);
+    assert.match(sonarStartup, /--fail-with-body/);
+    assert.doesNotMatch(sonarStartup, /openssl rand -hex 32/);
+
     const trivyIgnore = await readFile(".trivyignore.yaml", "utf8");
     assert.match(trivyIgnore, /AWS-0011/);
     assert.match(trivyIgnore, /AWS-0132/);
